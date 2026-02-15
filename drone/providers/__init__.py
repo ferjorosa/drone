@@ -1,6 +1,6 @@
 """Drone providers module."""
 
-from drone.agent.providers.base import LLMProvider, LLMResponse, ToolCallRequest
-from drone.agent.providers.openai import OpenAIProvider
+from drone.providers.base import LLMResponse, ToolCallRequest
+from drone.providers.openai import OpenAIProvider
 
-__all__ = ["LLMProvider", "LLMResponse", "ToolCallRequest", "OpenAIProvider"]
+__all__ = ["LLMResponse", "ToolCallRequest", "OpenAIProvider"]

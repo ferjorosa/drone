@@ -2,15 +2,16 @@
 
 import json
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Iterable
 
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolUnionParam
 
-from drone.providers.base import LLMProvider, LLMResponse, ToolCallRequest
+from drone.providers.base import LLMResponse, ToolCallRequest
 
 
 @dataclass
-class OpenAIProvider(LLMProvider):
+class OpenAIProvider:
     """OpenAI-compatible provider (works with OpenAI, vLLM, Ollama, etc.)."""
 
     model: str = "gpt-4o-mini"
@@ -27,26 +28,34 @@ class OpenAIProvider(LLMProvider):
 
     async def chat(
         self,
-        messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]] | None = None,
+        messages: Iterable[ChatCompletionMessageParam],
+        tools: Iterable[ChatCompletionToolUnionParam] | None = None,
         model: str | None = None,
         max_tokens: int | None = None,
         temperature: float | None = None,
     ) -> LLMResponse:
         """Send a chat completion request."""
-        kwargs = {
-            "model": model or self.model,
-            "messages": messages,
-            "max_tokens": max_tokens or self.max_tokens,
-            "temperature": temperature or self.temperature,
-        }
-
-        if tools:
-            kwargs["tools"] = tools
-            kwargs["tool_choice"] = "auto"
+        resolved_model = model or self.model
+        resolved_max_tokens = self.max_tokens if max_tokens is None else max_tokens
+        resolved_temperature = self.temperature if temperature is None else temperature
 
         try:
-            response = await self._client.chat.completions.create(**kwargs)
+            if tools:
+                response = await self._client.chat.completions.create(
+                    model=resolved_model,
+                    messages=messages,
+                    max_tokens=resolved_max_tokens,
+                    temperature=resolved_temperature,
+                    tools=tools,
+                    tool_choice="auto",
+                )
+            else:
+                response = await self._client.chat.completions.create(
+                    model=resolved_model,
+                    messages=messages,
+                    max_tokens=resolved_max_tokens,
+                    temperature=resolved_temperature,
+                )
             return self._parse_response(response)
         except Exception as e:
             return LLMResponse(

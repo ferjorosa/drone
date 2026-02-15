@@ -3,6 +3,8 @@
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable
 
+from openai.types.chat import ChatCompletionToolUnionParam
+
 from drone.tools.bash import BASH_TOOL
 from drone.tools.edit import EDIT_TOOL
 from drone.tools.read import READ_TOOL
@@ -50,7 +52,7 @@ def _build_tools_map(tools: list[Tool]) -> dict[str, Tool]:
 TOOLS: dict[str, Tool] = _build_tools_map(TOOL_LIST)
 
 
-def get_openai_tool_definitions() -> list[dict[str, Any]]:
+def get_openai_tool_definitions() -> list[ChatCompletionToolUnionParam]:
     """Return tools in OpenAI-compatible function-calling format."""
     return [
         {

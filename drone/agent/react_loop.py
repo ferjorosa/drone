@@ -3,7 +3,9 @@
 import json
 from typing import Any
 
-from drone.providers.base import LLMProvider
+from openai.types.chat import ChatCompletionMessageParam, ChatCompletionToolMessageParam
+
+from drone.providers.openai import OpenAIProvider
 from drone.tools.tools import TOOLS, get_openai_tool_definitions
 
 
@@ -20,7 +22,7 @@ class ReActAgent:
 
     def __init__(
         self,
-        provider: LLMProvider,
+        provider: OpenAIProvider,
         max_iterations: int = 10,
     ):
         self.provider = provider
@@ -46,7 +48,7 @@ class ReActAgent:
 
         return await self._run_loop(messages)
 
-    async def _run_loop(self, messages: list[dict[str, Any]]) -> str:
+    async def _run_loop(self, messages: list[ChatCompletionMessageParam]) -> str:
         """Run the ReAct loop until completion."""
 
         for iteration in range(self.max_iterations):
@@ -80,14 +82,12 @@ class ReActAgent:
                     result = await self._execute_tool(
                         tool_call.name, tool_call.arguments
                     )
-                    messages.append(
-                        {
-                            "role": "tool",
-                            "tool_call_id": tool_call.id,
-                            "name": tool_call.name,
-                            "content": result,
-                        }
-                    )
+                    tool_message: ChatCompletionToolMessageParam = {
+                        "role": "tool",
+                        "tool_call_id": tool_call.id,
+                        "content": result,
+                    }
+                    messages.append(tool_message)
 
                 # Continue loop
                 messages.append({"role": "user", "content": "What is the next step?"})

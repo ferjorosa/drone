@@ -1,12 +1,11 @@
 """Drone agent module."""
 
-from drone.agent.providers.base import LLMProvider, LLMResponse, ToolCallRequest
-from drone.agent.providers.openai import OpenAIProvider
 from drone.agent.react_loop import ReActAgent
+from drone.providers.base import LLMResponse, ToolCallRequest
+from drone.providers.openai import OpenAIProvider
 
 __all__ = [
     "ReActAgent",
-    "LLMProvider",
     "LLMResponse",
     "ToolCallRequest",
     "OpenAIProvider",

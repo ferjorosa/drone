@@ -1,6 +1,5 @@
-"""Base LLM provider interface."""
+"""Shared provider response types."""
 
-from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -27,24 +26,3 @@ class LLMResponse:
     def has_tool_calls(self) -> bool:
         """Check if response contains tool calls."""
         return len(self.tool_calls) > 0
-
-
-class LLMProvider(ABC):
-    """Abstract base class for LLM providers."""
-
-    @abstractmethod
-    async def chat(
-        self,
-        messages: list[dict[str, Any]],
-        tools: list[dict[str, Any]] | None = None,
-        model: str | None = None,
-        max_tokens: int = 4096,
-        temperature: float = 0.7,
-    ) -> LLMResponse:
-        """Send a chat completion request."""
-        pass
-
-    @abstractmethod
-    def get_default_model(self) -> str:
-        """Get the default model for this provider."""
-        pass
