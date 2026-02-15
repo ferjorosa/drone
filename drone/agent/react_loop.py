@@ -1,10 +1,10 @@
 """ReAct agent loop."""
 
-import asyncio
 import json
 from typing import Any
 
-from drone.agent.providers.base import LLMProvider, LLMResponse
+from drone.providers.base import LLMProvider
+from drone.tools.tools import TOOLS, get_openai_tool_definitions
 
 
 class ReActAgent:
@@ -50,7 +50,10 @@ class ReActAgent:
         """Run the ReAct loop until completion."""
 
         for iteration in range(self.max_iterations):
-            response = await self.provider.chat(messages=messages)
+            response = await self.provider.chat(
+                messages=messages,
+                tools=get_openai_tool_definitions(),
+            )
 
             if response.has_tool_calls:
                 # Add assistant message with tool calls
@@ -96,34 +99,7 @@ class ReActAgent:
 
     async def _execute_tool(self, name: str, arguments: dict[str, Any]) -> str:
         """Execute a tool by name."""
-
-        if name == "bash":
-            command = arguments.get("command", "")
-            return await self._run_bash(command)
-
-        elif name == "execute":
-            code = arguments.get("code", "")
-            return await self._run_bash(code)
-
-        else:
+        tool = TOOLS.get(name)
+        if tool is None:
             return f"Error: Unknown tool '{name}'"
-
-    async def _run_bash(self, command: str) -> str:
-        """Execute a bash command."""
-        try:
-            process = await asyncio.create_subprocess_shell(
-                command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-            )
-            stdout, stderr = await process.communicate()
-
-            output = stdout.decode() if stdout else ""
-            error = stderr.decode() if stderr else ""
-
-            if error:
-                return f"stdout:\n{output}\nstderr:\n{error}"
-            return output
-
-        except Exception as e:
-            return f"Error executing command: {str(e)}"
+        return await tool.execute(arguments)
