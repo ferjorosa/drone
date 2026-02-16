@@ -88,9 +88,6 @@ class ReActAgent:
                         "content": result,
                     }
                     messages.append(tool_message)
-
-                # Continue loop
-                messages.append({"role": "user", "content": "What is the next step?"})
             else:
                 # No tool calls, we're done
                 return response.content or ""
