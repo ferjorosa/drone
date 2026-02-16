@@ -3,16 +3,18 @@
 import asyncio
 import os
 
+from dotenv import load_dotenv
 from drone import OpenAIProvider, ReActAgent
 
 
 async def main():
-    # Create provider - uses OPENAI_API_KEY env var by default
-    # For vLLM or other OpenAI-compatible servers, set base_url
+    load_dotenv()
+
+    # OpenRouter example: keep endpoint/model in code, API key in .env.
     provider = OpenAIProvider(
-        model=os.getenv("OPENAI_MODEL", "gpt-4o-mini"),
-        base_url=os.getenv("OPENAI_BASE_URL"),  # e.g., "http://localhost:8000/v1"
-        api_key=os.getenv("OPENAI_API_KEY", "dummy-key-for-local"),
+        model="openai/gpt-5.2",
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.getenv("OPENROUTER_API_KEY"),
     )
 
     # Create agent
@@ -23,7 +25,7 @@ async def main():
 
     # Run a simple test
     result = await agent.run(
-        message="What is the current directory? Use bash to check.",
+        message="Use bash to run `pwd` and return only the resulting path.",
     )
 
     print("Result:")
